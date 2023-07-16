@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wepapp-deployment
+  labels:
+    app: wepapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wepapp
+  template:
+    metadata:
+      labels:
+        app: wepapp
+    spec:
+      containers:
+      - name: wepapp
+        image: nanajanashia/k8s-demo-app:v1.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-user
+        - name: USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: mongo-config
+              key: mongo-url
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wepapp-service
+spec:
+  type: NodePort
+  selector:
+    app: wepapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+      nodePort: 30100
